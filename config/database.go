@@ -13,14 +13,17 @@ func InitDB() *sql.DB {
 		log.Fatal(err)
 	}
 
-	db.Exec(`
+	_, err = db.Exec(`
 	CREATE TABLE IF NOT EXISTS students (
 		id TEXT PRIMARY KEY,
-		name TEXT,
+		name TEXT NOT NULL,
 		major TEXT,
-		gpa REAL
+		gpa REAL NOT NULL
 	)
 	`)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return db
 }
