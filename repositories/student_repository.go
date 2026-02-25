@@ -20,7 +20,9 @@ func (r *StudentRepository) GetAll() ([]models.Student, error) {
 	var students []models.Student
 	for rows.Next() {
 		var s models.Student
-		rows.Scan(&s.Id, &s.Name, &s.Major, &s.GPA)
+		if err := rows.Scan(&s.Id, &s.Name, &s.Major, &s.GPA); err != nil {
+			return nil, err
+		}
 		students = append(students, s)
 	}
 	return students, nil
@@ -46,4 +48,35 @@ func (r *StudentRepository) Create(s models.Student) error {
 		s.Id, s.Name, s.Major, s.GPA,
 	)
 	return err
+}
+
+func (r *StudentRepository) Update(id string, s models.Student) (*models.Student, error) {
+	result, err := r.DB.Exec(
+		"UPDATE students SET name = ?, major = ?, gpa = ? WHERE id = ?",
+		s.Name, s.Major, s.GPA, id,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return nil, sql.ErrNoRows
+	}
+
+	return r.GetByID(id)
+}
+
+func (r *StudentRepository) Delete(id string) error {
+	result, err := r.DB.Exec("DELETE FROM students WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
